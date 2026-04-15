@@ -1,9 +1,3 @@
-#!/bin/bash
-
-# Activate virtual environment
-source $SCRATCH/py-envs/makeCloud/bin/activate
-export PYTHONPATH=$SCRATCH/py-envs/makeCloud/lib/python3.9/site-packages/
-
 # Define input parameters from arguments
 radius=$1 	# pc
 mass=$2 	# solar masses
@@ -15,11 +9,11 @@ echo "Alpha: $alpha_turb"
 echo "Seed: $turb_seed"
 
 # define the path for glass and turbulence files
-glass_path=/scratch1/10386/lsmith9003/scripts/MakeCloud/glass_orig.npy
-turb_path=/scratch1/10386/lsmith9003/scripts/MakeCloud/turbulence # folder where to store the turbulence files
+glass_path=./glass_orig.npy
+turb_path=./turbulence # folder where to store the turbulence files
 
 # define save path
-save_path=/scratch1/10386/lsmith9003/scripts/MakeCloud/output
+save_path=./output
 
 # Remove any existing files from previous run
 if [ -d "$save_path" ]; then 
@@ -28,7 +22,7 @@ fi
 mkdir $save_path
 
 # Define the number of particles
-N=3.3e4
+N=3.0e4
 
 # run the MakeCloud program with awk
 #awk -F" " '{print "python MakeCloud.py --R='$radius' --M='$mass' --N='$N' --turb_sol=0.5 --bturb=0.01 --boxsize=15 --alpha_turb=1.2 --turb_seed=42 --makebox  --glass_path='$glass_path' --turb_path='$turb_path'}' $file | bash
@@ -69,35 +63,23 @@ do
         IC=$(grep 'InitCondFile' $file | awk -F" " '{print $2}')
         # add savepath to InitCondFile
         sed -i "s|$IC|./$IC|g" $file
-#
-#        # # replace the random number
-#        sed -i "s|TurbDrive_RandomNumberSeed          42|TurbDrive_RandomNumberSeed          $NewTurbSeed|g" $file
-#        # # find the time between snapshots
-#        # timeBetween=$(grep 'TimeBetSnapshot' $file | awk -F" " '{print $2}')
-#        # exp=$(($(echo $timeBetween | cut -d 'e' -f2)*1))
-#        # # increase by a factor of 10
-#        # exp=$(($exp+1))
-#        # exp=$(printf e%03d $exp)
-#        # # recombine the number
-#        # newTimeBet=$(echo $timeBetween | cut -d 'e' -f1)$exp
-#        # # replace the time between snapshots
-#        # sed -i "s|$timeBetween|$newTimeBet|g" $file
-#
-        # find the crossing time
+
+        # Optional: specify total time based on turbulent crossing time
         tCross=$(grep 'TurbDrive_CoherenceTime' $file | awk -F" " '{print $2}')
         tCross=$(echo $tCross | awk '{printf "%.10f\n", $1}')
-	
-	# Correct by a factor of 2
-        tCross=$(echo "$tCross * 2" | bc)
-        # define the new end time
-        newEndTime=$(echo "$tCross * 10" | bc)
-        # find max time
+        newEndTime=$(echo "$tCross*2" | bc)
         timeMax=$(grep 'TimeMax' $file | awk -F" " '{print $2}')
-        # replace the end time
         sed -i "s|$timeMax|0$newEndTime|g" $file
+
+        # Optional: specify physical time step in years
+        # dtYears=2.50e2
+        # dtCode=$(awk -v y="$dtYears" 'BEGIN {print y * 1.02270473e-9}')
+        # timeBet=$(grep 'TimeBetSnapshot' $file | awk -F" " '{print $2}')
+        # timeBetStat=$(grep 'TimeBetStatistics' $file | awk -F" " '{print $2}')
+        # sed -i "s|$timeBet|$dtCode|g" $file
+        # sed -i "s|$timeBetStat|$dtCode|g" $file
+
+        
     fi
     mv -vn $file $save_path
 done
-
-# Clean up path and environment
-deactivate

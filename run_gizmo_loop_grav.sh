@@ -1,11 +1,11 @@
 #!/bin/bash
-#SBATCH -j run_gizmo_loop_grav
+#SBATCH -J run_gizmo_loop_grav
 #SBATCH -N 2
 #SBATCH -n 56
 #SBATCH -o log.%j 
 #SBATCH -p normal
-#SBATCH -A XXXXXXXX
-#SBATCH -t 24:00:00
+#SBATCH -A XXXXXXX
+#SBATCH -t 4:00:00
 
 # Load the requisite modules
 module purge
@@ -23,6 +23,11 @@ M=6
 
 # Root directory
 root_dir=$(pwd)
+
+# Virtual environment directory
+venv_dir=$root_dir/env
+export PYTHONPATH=$root_dir/env/lib/python3.9/site-packages/
+export PATH=$PYTHONPATH:$PATH
 
 # Start time
 start=`date +%s`
@@ -45,7 +50,9 @@ do
 		date 	
 		cp -r $root_dir/src/MakeCloud $run_dir/.
 		cd $run_dir/MakeCloud
+		source $venv_dir/bin/activate
 		./run_makecloud_grav.sh $R $M > log.make_cloud
+		deactivate
 		echo "MakeCloud run complete."
 
 		# Starforge
@@ -69,7 +76,9 @@ do
 		cd $run_dir
 		cp -r $root_dir/src/trace_cells .
 		cd trace_cells
+		source $venv_dir/bin/activate
 		python trace_cells.py --gizmo_path $run_dir/output --mass 'M'$M --radius $R > log.trace_cells
+		deactivate
 		cd $root_dir
 		echo "TraceCells complete."
 		date
