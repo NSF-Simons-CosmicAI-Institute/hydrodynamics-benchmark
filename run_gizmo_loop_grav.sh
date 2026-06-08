@@ -26,14 +26,14 @@ root_dir=$(pwd)
 
 # Virtual environment directory
 venv_dir=$root_dir/env
-export PYTHONPATH=$root_dir/env/lib/python3.9/site-packages/
+export PYTHONPATH=$root_dir/env/lib/python3.7/site-packages/
 export PATH=$PYTHONPATH:$PATH
 
 # Start time
 start=`date +%s`
 
 # Set up a loop for the remaining simulation parameters
-for R in 0.02 0.05 0.1 0.2
+for R in 0.1 #0.02 0.05 0.1 0.2
 do
 		# General setup
 		echo "----------------------"

@@ -27,7 +27,7 @@ root_dir=$(pwd)
 
 # Virtual environment directory
 venv_dir=$root_dir/env
-export PYTHONPATH=$root_dir/env/lib/python3.9/site-packages/
+export PYTHONPATH=$root_dir/env/lib/python3.7/site-packages/
 export PATH=$PYTHONPATH:$PATH
 
 # Start time

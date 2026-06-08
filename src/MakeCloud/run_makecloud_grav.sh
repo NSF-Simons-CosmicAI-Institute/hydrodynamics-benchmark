@@ -64,4 +64,4 @@ do
 done
 
 # Clean up path and environment
-deactivate
+# deactivate
