@@ -49,7 +49,7 @@ The following instructions describe how to copy, compile, and run a hydrodynamic
 
     If everything has been set up according to plan, you should see a series of checks from the Slurm job scheduling system, concluding with:
 
-     Submitted batch job <job-ID>
+     Submitted batch job [job-ID]
 
     where "job-ID" is a unique identification number assigned to your job by the slurm scheduler.
 
