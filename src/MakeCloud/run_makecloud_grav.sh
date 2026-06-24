@@ -58,6 +58,13 @@ do
         IC=$(grep 'InitCondFile' $file | awk -F" " '{print $2}')
         # add savepath to InitCondFile
         sed -i "s|$IC|./$IC|g" $file
+
+        # Optional: specify physical time step in years
+        dtCode=$(python3 years_to_code_units.py 250)
+        timeBet=$(grep 'TimeBetSnapshot' $file | awk -F" " '{print $2}')
+        timeBetStat=$(grep 'TimeBetStatistics' $file | awk -F" " '{print $2}')
+        sed -i "s|$timeBet|$dtCode|g" $file
+        sed -i "s|$timeBetStat|$dtCode|g" $file
         
     fi
     mv -vn $file $save_path

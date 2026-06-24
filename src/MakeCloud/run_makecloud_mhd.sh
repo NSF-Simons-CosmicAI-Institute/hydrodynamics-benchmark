@@ -72,12 +72,11 @@ do
         sed -i "s|$timeMax|0$newEndTime|g" $file
 
         # Optional: specify physical time step in years
-        # dtYears=2.50e2
-        # dtCode=$(awk -v y="$dtYears" 'BEGIN {print y * 1.02270473e-9}')
-        # timeBet=$(grep 'TimeBetSnapshot' $file | awk -F" " '{print $2}')
-        # timeBetStat=$(grep 'TimeBetStatistics' $file | awk -F" " '{print $2}')
-        # sed -i "s|$timeBet|$dtCode|g" $file
-        # sed -i "s|$timeBetStat|$dtCode|g" $file
+        dtCode=$(python3 years_to_code_units.py 250)
+        timeBet=$(grep 'TimeBetSnapshot' $file | awk -F" " '{print $2}')
+        timeBetStat=$(grep 'TimeBetStatistics' $file | awk -F" " '{print $2}')
+        sed -i "s|$timeBet|$dtCode|g" $file
+        sed -i "s|$timeBetStat|$dtCode|g" $file
 
         
     fi
