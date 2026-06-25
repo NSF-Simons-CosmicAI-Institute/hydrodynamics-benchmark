@@ -16,7 +16,7 @@ The following instructions describe how to copy, compile, and run a hydrodynamic
 2) Copy the source code to your scratch directory:
 
     ```
-    cp -r /work2/10386/lsmith9003/frontera/hydrodynamics-benchmark .
+    git clone https://github.com/NSF-Simons-CosmicAI-Institute/hydrodynamics-benchmark.git
     ```
 
 3) Create a python virtual environment with the necessary requirements. This step is necessary for generating an initial condition and completing post processing, the scripts for which are written in python:
