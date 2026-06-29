@@ -64,15 +64,9 @@ do
         # add savepath to InitCondFile
         sed -i "s|$IC|./$IC|g" $file
 
-        # Optional: specify total time based on turbulent crossing time
-        #tCross=$(grep 'TurbDrive_CoherenceTime' $file | awk -F" " '{print $2}')
-        #tCross=$(echo $tCross | awk '{printf "%.10f\n", $1}')
-        #newEndTime=$(echo "$tCross*2" | bc)
-        #timeMax=$(grep 'TimeMax' $file | awk -F" " '{print $2}')
-        #sed -i "s|$timeMax|0$newEndTime|g" $file
-
         # Optional: specify total time based on dynamical time
-        tDyn=$(python3 compute_dynamical_time.py "$mass" "$radius")
+        # Note: for MHD we define dynamical time based on turbulent crossing time
+        tDyn=$(python3 compute_dynamical_time.py "$mass" "$radius" "$alpha_turb")
         newEndTime=$(echo "$tDyn*5" | bc)
         timeMax=$(grep 'TimeMax' $file | awk -F" " '{print $2}')
         sed -i "s|$timeMax|0$newEndTime|g" $file
