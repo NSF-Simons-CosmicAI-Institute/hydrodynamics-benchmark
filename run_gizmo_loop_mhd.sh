@@ -4,7 +4,7 @@
 #SBATCH -n 56
 #SBATCH -o log.%j 
 #SBATCH -p normal
-#SBATCH -A OTH24002
+#SBATCH -A XXXXXXXX
 #SBATCH -t 4:00:00
 
 # Load the requisite modules
