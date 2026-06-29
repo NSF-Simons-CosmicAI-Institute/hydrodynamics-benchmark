@@ -54,8 +54,8 @@ def main(path,mass,radius):
         print(
             f"Band {i}: {attr['Radiation_RHD_Min_Bin_Freq_in_eV'][i]:0.2f} - {attr['Radiation_RHD_Max_Bin_Freq_in_eV'][i]:0.2f} eV"
         )    
-    #if radius > 0:
-    #    gas_data = removeCellsOutsideSphere(gas_data, radius)
+    if radius > 0:
+        gas_data = removeCellsOutsideSphere(gas_data, radius)
     cells = np.unique(gas_data["ParticleIDs"])  # get the unique cell ids
 
     # Initialize the arrays to store the data
@@ -99,7 +99,7 @@ def main(path,mass,radius):
             * units_base["UnitLength_in_cm"]
             / units_base["UnitVelocity_in_cm_per_sec"]
         ) / (
-            3600 * 24 * 365 * 1e3
+            3600 * 24 * 365.25 * 1e3
         )  # convert to kyr
         print(
             f"Processing file {i + 1}/{len(files)} T = {time[i]:0.3f} kyr with {gas_data['ParticleIDs'].shape[0]} cells"
@@ -185,7 +185,7 @@ def main(path,mass,radius):
     Av = column_density / 1.6e21
 
     # convert sec to kyr
-    # time /= 3600 * 24 * 365 * 1e3
+    # time /= 3600 * 24 * 365.25 * 1e3
 
     # convert radiation into Draines G_0 = UV/(8.94e-14)
     radiation /= 8.94e-14
