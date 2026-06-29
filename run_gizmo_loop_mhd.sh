@@ -4,7 +4,7 @@
 #SBATCH -n 56
 #SBATCH -o log.%j 
 #SBATCH -p normal
-#SBATCH -A XXXXXXX
+#SBATCH -A OTH24002
 #SBATCH -t 4:00:00
 
 # Load the requisite modules
@@ -26,8 +26,8 @@ alpha=2.0
 root_dir=$(pwd)
 
 # Virtual environment directory
-venv_dir=$root_dir/env
-export PYTHONPATH=$root_dir/env/lib/python3.7/site-packages/
+venv_dir=/work2/10386/lsmith9003/frontera/python-envs/gizmo/ #$root_dir/env
+export PYTHONPATH=/work2/10386/lsmith9003/frontera/python-envs/gizmo/lib/python3.9/site-packages/  #$root_dir/env/lib/python3.7/site-packages/
 export PATH=$PYTHONPATH:$PATH
 
 # Start time
@@ -53,38 +53,38 @@ do
 		date 	
 		cp -r $root_dir/src/MakeCloud $run_dir/.
 		cd $run_dir/MakeCloud
-        source $venv_dir/bin/activate
+                source $venv_dir/bin/activate
 		./run_makecloud_mhd.sh $R $M $seed $alpha > log.make_cloud
-        deactivate
+                deactivate
 		echo "MakeCloud run complete."
 
 		# Starforge
-		echo "Compiling gizmo code base..."
-		date
-		cd $run_dir
-		make > log.make
-		echo "Compilation complete."
+		#echo "Compiling gizmo code base..."
+		#date
+		#cd $run_dir
+		#make > log.make
+		#echo "Compilation complete."
 		
-		echo "Running Starforge code..."
-		date
-		cd $run_dir
-		cp -r $run_dir/MakeCloud/output/* .
-		filename=$(find . -maxdepth 1 -type f -name "params_*") 
-		ibrun ./GIZMO $filename 1>GizmoLogs/RunLogs/Rad_Turb_Sphere_res32.out 2>GizmoLogs/RunLogs/Rad_Turb_Sphere_res32.err
-		echo "Starforge run complete."
+		#echo "Running Starforge code..."
+		#date
+		#cd $run_dir
+		#cp -r $run_dir/MakeCloud/output/* .
+		#filename=$(find . -maxdepth 1 -type f -name "params_*") 
+		#ibrun ./GIZMO $filename 1>GizmoLogs/RunLogs/Rad_Turb_Sphere_res32.out 2>GizmoLogs/RunLogs/Rad_Turb_Sphere_res32.err
+		#echo "Starforge run complete."
 
 		# Trace cells
-		echo "Running TraceCells..."
-		date
-		cd $run_dir
-		cp -r $root_dir/src/trace_cells .
-		cd trace_cells
-        source $venv_dir/bin/activate
-		python trace_cells.py --gizmo_path $run_dir/output --mass 'M'$M --radius $R > log.trace_cells
-        deactivate
-		cd $root_dir
-		echo "TraceCells complete."
-		date
+		#echo "Running TraceCells..."
+		#date
+		#cd $run_dir
+		#cp -r $root_dir/src/trace_cells .
+		#cd trace_cells
+                #source $venv_dir/bin/activate
+		#python trace_cells.py --gizmo_path $run_dir/output --mass 'M'$M --radius $R > log.trace_cells
+                #deactivate
+		#cd $root_dir
+		#echo "TraceCells complete."
+		#date
 	done
 done 
 

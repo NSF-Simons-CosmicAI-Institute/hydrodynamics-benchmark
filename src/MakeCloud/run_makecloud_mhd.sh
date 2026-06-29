@@ -22,7 +22,7 @@ fi
 mkdir $save_path
 
 # Define the number of particles
-N=3.0e4
+N=6.0e4
 
 # run the MakeCloud program with awk
 #awk -F" " '{print "python MakeCloud.py --R='$radius' --M='$mass' --N='$N' --turb_sol=0.5 --bturb=0.01 --boxsize=15 --alpha_turb=1.2 --turb_seed=42 --makebox  --glass_path='$glass_path' --turb_path='$turb_path'}' $file | bash
@@ -51,8 +51,8 @@ do
         # check if the directory exists
         mkdir -p $dir
         # grep the mass from the file name
-        mass=$(echo $file | awk -F"_" '{print $2}')
-        alpha=$(echo $file | awk -F"_" '{print $6}')
+        #mass=$(echo $file | awk -F"_" '{print $2}')
+        #alpha=$(echo $file | awk -F"_" '{print $6}')
         # grep the turb seed from the file name
         turbSeed=$(echo $file | awk -F"_" '{print $12}')
         # remove ./ from the file name
@@ -65,18 +65,31 @@ do
         sed -i "s|$IC|./$IC|g" $file
 
         # Optional: specify total time based on turbulent crossing time
-        tCross=$(grep 'TurbDrive_CoherenceTime' $file | awk -F" " '{print $2}')
-        tCross=$(echo $tCross | awk '{printf "%.10f\n", $1}')
-        newEndTime=$(echo "$tCross*2" | bc)
+        #tCross=$(grep 'TurbDrive_CoherenceTime' $file | awk -F" " '{print $2}')
+        #tCross=$(echo $tCross | awk '{printf "%.10f\n", $1}')
+        #newEndTime=$(echo "$tCross*2" | bc)
+        #timeMax=$(grep 'TimeMax' $file | awk -F" " '{print $2}')
+        #sed -i "s|$timeMax|0$newEndTime|g" $file
+
+        # Optional: specify total time based on dynamical time
+        tDyn=$(python3 compute_dynamical_time.py "$mass" "$radius")
+        newEndTime=$(echo "$tDyn*5" | bc)
         timeMax=$(grep 'TimeMax' $file | awk -F" " '{print $2}')
         sed -i "s|$timeMax|0$newEndTime|g" $file
 
         # Optional: specify physical time step in years
-        dtCode=$(python3 years_to_code_units.py 250)
+        dtCode=$(python3 years_to_code_units.py 1000)
         timeBet=$(grep 'TimeBetSnapshot' $file | awk -F" " '{print $2}')
         timeBetStat=$(grep 'TimeBetStatistics' $file | awk -F" " '{print $2}')
         sed -i "s|$timeBet|$dtCode|g" $file
         sed -i "s|$timeBetStat|$dtCode|g" $file
+
+        # Optional: specify the timing of first snapshot
+        # Note that we match the string TimeOfFirstSnapshot here because it's original value is 0. If you do not match the entire string it replaces 0 throughout the file, of which there are many.
+        timeFirst=$(grep 'TimeOfFirstSnapshot' $file | awk -F" " '{print $2}')
+        newTimeFirst=$(echo "$tDyn*4" | bc)
+        sed -E -i "s|TimeOfFirstSnapshot     $timeFirst|TimeOfFirstSnapshot     0$newTimeFirst|g" $file
+
 
         
     fi
