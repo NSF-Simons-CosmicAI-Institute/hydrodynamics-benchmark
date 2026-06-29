@@ -4,7 +4,7 @@
 #SBATCH -n 56
 #SBATCH -o log.%j 
 #SBATCH -p normal
-#SBATCH -A XXXXXXXX
+#SBATCH -A XXXXXXX
 #SBATCH -t 4:00:00
 
 # Load the requisite modules
@@ -59,32 +59,32 @@ do
 		echo "MakeCloud run complete."
 
 		# Starforge
-		#echo "Compiling gizmo code base..."
-		#date
-		#cd $run_dir
-		#make > log.make
-		#echo "Compilation complete."
+		echo "Compiling gizmo code base..."
+		date
+		cd $run_dir
+		make > log.make
+		echo "Compilation complete."
 		
-		#echo "Running Starforge code..."
-		#date
-		#cd $run_dir
-		#cp -r $run_dir/MakeCloud/output/* .
-		#filename=$(find . -maxdepth 1 -type f -name "params_*") 
-		#ibrun ./GIZMO $filename 1>GizmoLogs/RunLogs/Rad_Turb_Sphere_res32.out 2>GizmoLogs/RunLogs/Rad_Turb_Sphere_res32.err
-		#echo "Starforge run complete."
+		echo "Running Starforge code..."
+		date
+		cd $run_dir
+		cp -r $run_dir/MakeCloud/output/* .
+		filename=$(find . -maxdepth 1 -type f -name "params_*") 
+		ibrun ./GIZMO $filename 1>GizmoLogs/RunLogs/Rad_Turb_Sphere_res32.out 2>GizmoLogs/RunLogs/Rad_Turb_Sphere_res32.err
+		echo "Starforge run complete."
 
 		# Trace cells
-		#echo "Running TraceCells..."
-		#date
-		#cd $run_dir
-		#cp -r $root_dir/src/trace_cells .
-		#cd trace_cells
-                #source $venv_dir/bin/activate
-		#python trace_cells.py --gizmo_path $run_dir/output --mass 'M'$M --radius $R > log.trace_cells
-                #deactivate
-		#cd $root_dir
-		#echo "TraceCells complete."
-		#date
+		echo "Running TraceCells..."
+		date
+		cd $run_dir
+		cp -r $root_dir/src/trace_cells .
+		cd trace_cells
+                source $venv_dir/bin/activate
+		python trace_cells.py --gizmo_path $run_dir/output --mass 'M'$M --radius $R > log.trace_cells
+                deactivate
+		cd $root_dir
+		echo "TraceCells complete."
+		date
 	done
 done 
 
