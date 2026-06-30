@@ -101,11 +101,6 @@ def main(path,mass,radius):
         ) / (
             3600 * 24 * 365.25 * 1e3
         )  # convert to kyr
-        print(
-            f"Processing file {i + 1}/{len(files)} T = {time[i]:0.3f} kyr with {gas_data['ParticleIDs'].shape[0]} cells"
-        )
-        if len(gas_data["Temperature"]) < len(cells):
-            continue
 
         # Get the maximum temperature and density for each file
         max_temp[i] = np.max(gas_data["Temperature"])
@@ -114,15 +109,19 @@ def main(path,mass,radius):
         # Get the column density
         NH = getColumnDensity(gas_data, rays)
 
-
-        #gas_data = removeCellsOutsideSphere(gas_data, radius)
-
         # keep only the specified cells
         index = np.squeeze(np.where(np.isin(gas_data["ParticleIDs"], cells)))
         # sort the index based on the cell id to ensure the data is in the same order
         index = index[np.argsort(gas_data["ParticleIDs"][index])]
  
         gas_data = {k: v[index] for k, v in gas_data.items()}
+
+        print(
+            f"Processing file {i + 1}/{len(files)} T = {time[i]:0.3f} kyr with {gas_data['ParticleIDs'].shape[0]} cells"
+        )
+        
+        if len(getTemperature(gas_data)) < len(cells):
+            continue
 
         # Get the temperature from the data
         temperature[i] = getTemperature(gas_data)  # [kelvin]
