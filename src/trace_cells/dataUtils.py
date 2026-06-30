@@ -20,7 +20,7 @@ def getGasData(hdf5_file):
     return data, attr
 
 
-def removeCellsOutsideSphere(data: dict, radius: float) -> np.ndarray:
+def removeCellsOutsideSphere(data: dict, attr: dict, radius: float) -> np.ndarray:
     """
     Removes cells outside a sphere of a given radius.
     The sphere is centered at the origin of the coordinate system.
@@ -32,7 +32,8 @@ def removeCellsOutsideSphere(data: dict, radius: float) -> np.ndarray:
         dict: data dictionary with cells outside the sphere removed
     """
     # center the origin
-    cell_location = data["Coordinates"] - data["Coordinates"].max() / 2
+    # cell_location = data["Coordinates"] - data["Coordinates"].max() / 2
+    cell_location = data["Coordinates"] - attr["boxSize"]/2
     # calculate the distance from the center of the sphere
     distance = np.sqrt(np.sum(cell_location**2, axis=1))
     # keep only the cells inside the sphere

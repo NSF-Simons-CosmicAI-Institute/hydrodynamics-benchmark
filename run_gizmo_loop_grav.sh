@@ -25,8 +25,8 @@ M=6
 root_dir=$(pwd)
 
 # Virtual environment directory
-venv_dir=$root_dir/env
-export PYTHONPATH=$root_dir/env/lib/python3.9/site-packages/
+venv_dir=/work2/10386/lsmith9003/frontera/python-envs/gizmo/ #$root_dir/env
+export PYTHONPATH=/work2/10386/lsmith9003/frontera/python-envs/gizmo/lib/python3.9/site-packages/  #$root_dir/env/lib/python3.7/site-packages/
 export PATH=$PYTHONPATH:$PATH
 
 # Start time

@@ -54,8 +54,8 @@ def main(path,mass,radius):
         print(
             f"Band {i}: {attr['Radiation_RHD_Min_Bin_Freq_in_eV'][i]:0.2f} - {attr['Radiation_RHD_Max_Bin_Freq_in_eV'][i]:0.2f} eV"
         )    
-    if radius > 0:
-        gas_data = removeCellsOutsideSphere(gas_data, radius)
+    #if radius > 0:
+    #    gas_data = removeCellsOutsideSphere(gas_data, attr, radius)
     cells = np.unique(gas_data["ParticleIDs"])  # get the unique cell ids
 
     # Initialize the arrays to store the data
