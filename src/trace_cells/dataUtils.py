@@ -60,7 +60,7 @@ def getTemperature(data: dict) -> np.ndarray:
     # return mean_molecular_weight * (gamma - 1) * energy / k_boltzmann
 
 
-def getColumnDensity(data: dict, rays: int) -> np.ndarray:
+def getColumnDensity(data: dict, attr: dict, rays: int) -> np.ndarray:
     """
     Extracts the column density from the data dictionary.
 
@@ -71,10 +71,10 @@ def getColumnDensity(data: dict, rays: int) -> np.ndarray:
         np.ndarray: The column density array.
     """
     # Get the position and density arrays
-    pos = data["Coordinates"]
+    pos = data["Coordinates"].copy()
     po_center = np.median(pos, axis=0)
     # Shift the position to the center of the box
-    pos -= po_center
+    pos -= attr['BoxSize']/2 #po_center
     mass = data["Masses"]
     density = data["Density"]
     volume = mass / density  # code units

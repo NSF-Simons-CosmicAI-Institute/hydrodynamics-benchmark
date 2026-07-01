@@ -5,3 +5,5 @@ docopt
 pytreegrav
 matplotlib
 numba
+yt
+opencv-python

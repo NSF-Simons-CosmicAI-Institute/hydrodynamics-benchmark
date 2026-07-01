@@ -12,6 +12,7 @@ import glob
 import re
 from pytreegrav import ColumnDensity as ColumnDensity
 import matplotlib.pyplot as plt
+from matplotlib.animation import FuncAnimation, PillowWriter
 from dataUtils import (
     getGasData,
     removeCellsOutsideSphere,
@@ -20,7 +21,9 @@ from dataUtils import (
     getRadiationDensity,
 )
 import argparse
-
+import yt
+import tempfile
+import cv2
 
 def main(path,mass,radius):
     """
@@ -107,7 +110,7 @@ def main(path,mass,radius):
         max_den[i] = np.max(gas_data["Density"])
 
         # Get the column density
-        NH = getColumnDensity(gas_data, rays)
+        NH = getColumnDensity(gas_data, attr, rays)
 
         # keep only the specified cells
         index = np.squeeze(np.where(np.isin(gas_data["ParticleIDs"], cells)))
@@ -155,9 +158,6 @@ def main(path,mass,radius):
     max_den *= (
         units_base["UnitMass_in_g"] / units_base["UnitLength_in_cm"] ** 3
     )  # g/cm^3
-    #time *= (
-    #    units_base["UnitLength_in_cm"] / units_base["UnitVelocity_in_cm_per_sec"]
-    #)  # sec
     radiation *= (
         units_base["UnitMass_in_g"]
         * units_base["UnitVelocity_in_cm_per_sec"] ** 2
@@ -170,7 +170,6 @@ def main(path,mass,radius):
         / units_base["UnitLength_in_cm"] ** 2
         / (1.4 * 1.67e-24)
     )
-
     temp_denisty = (
         4.20
         * units_base["UnitMass_in_g"]
@@ -183,39 +182,8 @@ def main(path,mass,radius):
     # calculate the Av
     Av = column_density / 1.6e21
 
-    # convert sec to kyr
-    # time /= 3600 * 24 * 365.25 * 1e3
-
     # convert radiation into Draines G_0 = UV/(8.94e-14)
     radiation /= 8.94e-14
-
-    #print(f"Plotting for Cell: {cells[0]}")
-    # Plot the data
-    #plt.figure()
-    #plt.plot(time, temperature[:, 0], label=f"Temperature {cells[0]}")
-    #plt.plot(time, max_temp, label="Max Temperature")
-    #plt.legend()
-    #plt.title("Temperature")
-    #plt.xlabel("Time (kyr)")
-    #plt.ylabel("Temperature (K)")
-    #plt.savefig(f"plots/{mass}/{mass}_temperature_{cells[0]}.png")
-    #plt.figure()
-    #plt.plot(time, density[:, 0], label=f"Density {cells[0]}")
-    #plt.plot(time, max_den, label="Max Density")
-    #plt.legend()
-    #plt.title("Density")
-    #plt.xlabel("Time (kyr)")
-    #plt.ylabel("Density (g/cm^3)")
-    #plt.yscale("log")
-    #plt.savefig(f"plots/{mass}/{mass}_density_{cells[0]}.png")
-
-    #plt.figure()
-    #plt.plot(time, np.mean(Av[:, 0, :],axis=-1))
-    #plt.title("Av Parameter")
-    #plt.xlabel("Time (kyr)")
-    #plt.ylabel("N_H (cm^[-2])")
-    #plt.yscale("log")
-    #plt.savefig(f"plots/{mass}/{mass}_Av_{cells[0]}.png")
 
     # create a array to store the data
     data = np.zeros((np.sum(mask), len(cells), 10 + bands))
@@ -231,6 +199,32 @@ def main(path,mass,radius):
     np.save(f"output/{mass}_trace_cells.npy", data)
     np.save(f"output/{mass}_trace_cells_time.npy", time)  # save the time array
 
+    fig, ax = plt.subplots(figsize=(8, 4))
+    ax.plot(time,data[:,data.shape[1]//2,9])
+    ax.set_xlabel('Time (kyr)')
+    ax.set_ylabel('Av')
+    fig.savefig('trace_cells_Av_check.png',dpi=300)
+
+    # Video of particle positions
+    tmp_dir = tempfile.TemporaryDirectory()
+    for ind, f in enumerate(files[::10]):
+        image_path = tmp_dir.name+'/snapshot_'+ str(ind).zfill(3)
+        ds = yt.load(f)
+        p = yt.ProjectionPlot(ds, "z", ("PartType0", "density"))
+        p.save(image_path)
+
+        if ind == 0:
+            frame = cv2.imread(image_path + '_Projection_z_density.png')
+            height, width, layers = frame.shape
+            video_name = 'trace_cells.mp4'
+            fourcc = cv2.VideoWriter_fourcc(*'MP4V')
+            video = cv2.VideoWriter(video_name, fourcc, 10, (width,height))
+        video.write(cv2.imread(image_path + '_Projection_z_density.png'))
+        
+    cv2.destroyAllWindows()
+    video.release()
+    tmp_dir.cleanup()
+    print('Video saved!')
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="trace_cells.py: converts gizmo outputs to chemical network inputs")
