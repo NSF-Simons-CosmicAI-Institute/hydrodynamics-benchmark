@@ -70,6 +70,7 @@ def main(path,mass,radius):
     velocities = np.zeros((len(files),len(cells),3))
     coordinates = np.zeros((len(files),len(cells),3))
     dust_temperature = np.zeros((len(files), len(cells)))
+    particle_ID = np.zeros((len(files), len(cells)))
 
     max_temp = np.zeros(len(files))
     max_den = np.zeros(len(files))
@@ -135,6 +136,7 @@ def main(path,mass,radius):
         velocities[i] = gas_data['Velocities']
         coordinates[i] = gas_data['Coordinates']
         dust_temperature[i] = gas_data['Dust_Temperature']
+        particle_ID[i] = gas_data['ParticleIDs']
 
 
     # Mask out time steps with cells lost to accretion
@@ -149,6 +151,7 @@ def main(path,mass,radius):
     dust_temperature = dust_temperature[mask,:]
     max_temp = max_temp[mask]
     max_den = max_den[mask]
+    particle_ID = particle_ID[mask,:]
 
 
     # convert from code units to cgs
@@ -186,14 +189,30 @@ def main(path,mass,radius):
     radiation /= 8.94e-14
 
     # create a array to store the data
-    data = np.zeros((np.sum(mask), len(cells), 10 + bands))
+    data = np.zeros((np.sum(mask), len(cells), 10 + bands + 1))
     data[:, :, 0:3] = coordinates
     data[:, :, 3:6] = velocities
     data[:, :, 6] = density
     data[:, :, 7] = temperature
     data[:, :, 8] = dust_temperature
     data[:, :, 9] = np.mean(Av,axis=-1) #Av[..., ray_saved]
-    data[:, :, 10:] = radiation
+    data[:, :, 10:10+bands] = radiation
+    data[:, :, 10+bands] = particle_ID
+
+    del coordinates, velocities, density, temperature, dust_temperature, Av, radiation, particle_ID
+
+    # Filter cells based on density (removes tracers that remain in ambient medium)
+    print('Applying density filter...')
+    rho0 = float(mass[1:])/(4/3*np.pi*float(radius)**3)*units_base["UnitMass_in_g"] / units_base["UnitLength_in_cm"] ** 3
+    ind_density_filter = []
+    for ind in range(0,len(data[0,:,6])):
+        density_initial = data[0,ind,6]
+        if density_initial > rho0/100.:
+            ind_density_filter.append(ind)
+    data = data[:,ind_density_filter,:]
+    print('Baseline mass density: ' + str(rho0))
+    print('Cells retained after density filter: ' + str(len(ind_density_filter))) 
+
     # save the data to a numpy file
     print(f"Saving data for mass: {mass} with shape {data.shape}")
     np.save(f"output/{mass}_trace_cells.npy", data)
@@ -206,25 +225,25 @@ def main(path,mass,radius):
     fig.savefig('trace_cells_Av_check.png',dpi=300)
 
     # Video of particle positions
-    tmp_dir = tempfile.TemporaryDirectory()
-    for ind, f in enumerate(files[::10]):
-        image_path = tmp_dir.name+'/snapshot_'+ str(ind).zfill(3)
-        ds = yt.load(f)
-        p = yt.ProjectionPlot(ds, "z", ("PartType0", "density"))
-        p.save(image_path)
-
-        if ind == 0:
-            frame = cv2.imread(image_path + '_Projection_z_density.png')
-            height, width, layers = frame.shape
-            video_name = 'trace_cells.mp4'
-            fourcc = cv2.VideoWriter_fourcc(*'MP4V')
-            video = cv2.VideoWriter(video_name, fourcc, 10, (width,height))
-        video.write(cv2.imread(image_path + '_Projection_z_density.png'))
+    #tmp_dir = tempfile.TemporaryDirectory()
+    #for ind, f in enumerate(files[::10]):
+    #    image_path = tmp_dir.name+'/snapshot_'+ str(ind).zfill(3)
+    #    ds = yt.load(f)
+    #    p = yt.ProjectionPlot(ds, "z", ("PartType0", "density"))
+    #    p.save(image_path)
+    #
+    #    if ind == 0:
+    #        frame = cv2.imread(image_path + '_Projection_z_density.png')
+    #        height, width, layers = frame.shape
+    #        video_name = 'trace_cells.mp4'
+    #        fourcc = cv2.VideoWriter_fourcc(*'MP4V')
+    #        video = cv2.VideoWriter(video_name, fourcc, 30, (width,height))
+    #    video.write(cv2.imread(image_path + '_Projection_z_density.png'))
         
-    cv2.destroyAllWindows()
-    video.release()
-    tmp_dir.cleanup()
-    print('Video saved!')
+    #cv2.destroyAllWindows()
+    #video.release()
+    #tmp_dir.cleanup()
+    #print('Video saved!')
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="trace_cells.py: converts gizmo outputs to chemical network inputs")

@@ -1,9 +1,9 @@
 #!/bin/bash
 #SBATCH -J run_gizmo_loop_grav
-#SBATCH -N 2
-#SBATCH -n 56
+#SBATCH -N 1
+#SBATCH -n 1
 #SBATCH -o log.%j 
-#SBATCH -p normal
+#SBATCH -p rtx
 #SBATCH -A XXXXXXX
 #SBATCH -t 4:00:00
 
@@ -25,7 +25,7 @@ M=6
 root_dir=$(pwd)
 
 # Virtual environment directory
-venv_dir=/work2/10386/lsmith9003/frontera/python-envs/gizmo/ 
+venv_dir=/work2/10386/lsmith9003/frontera/python-envs/gizmo/
 export PYTHONPATH=/work2/10386/lsmith9003/frontera/python-envs/gizmo/lib/python3.9/site-packages/
 export PATH=$PYTHONPATH:$PATH
 
@@ -41,34 +41,7 @@ do
 		echo "R = $R, M = $M"
 		date
 		run_dir="$root_dir/grav_R${R}_M${M}"
-		cp -r $root_dir/src/gizmo_imf $run_dir
-		cp $root_dir/configs/Config_Rad_Grav.sh $run_dir/Config.sh
 		echo "General setup complete."
-
-		# MakeCloud
-		echo "Running MakeCloud..."
-		date 	
-		cp -r $root_dir/src/MakeCloud $run_dir/.
-		cd $run_dir/MakeCloud
-		source $venv_dir/bin/activate
-		./run_makecloud_grav.sh $R $M > log.make_cloud
-		deactivate
-		echo "MakeCloud run complete."
-
-		# Starforge
-		echo "Compiling gizmo code base..."
-		date
-		cd $run_dir
-		make > log.make
-		echo "Compilation complete."
-		
-		echo "Running Starforge code..."
-		date
-		cd $run_dir
-		cp -r $run_dir/MakeCloud/output/* .
-		filename=$(find . -maxdepth 1 -type f -name "params_*") 
-		ibrun ./GIZMO $filename 1>GizmoLogs/RunLogs/Rad_Turb_Sphere_res32.out 2>GizmoLogs/RunLogs/Rad_Turb_Sphere_res32.err
-		echo "Starforge run complete."
 
 		# Trace cells
 		echo "Running TraceCells..."
@@ -76,9 +49,9 @@ do
 		cd $run_dir
 		cp -r $root_dir/src/trace_cells .
 		cd trace_cells
-		source $venv_dir/bin/activate
-		python trace_cells_grav.py --gizmo_path $run_dir/output --mass 'M'$M --radius $R > log.trace_cells
-		deactivate
+                source $venv_dir/bin/activate
+		python -u trace_cells_grav.py --gizmo_path $run_dir/output --mass 'M'$M --radius $R > log.trace_cells
+                deactivate
 		cd $root_dir
 		echo "TraceCells complete."
 		date
